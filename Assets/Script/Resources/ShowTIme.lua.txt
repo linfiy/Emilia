@@ -1,0 +1,4 @@
+﻿CS.TimerCall.TimerFromScend(5,function()
+	print("陨落的星辰")
+end)
+
