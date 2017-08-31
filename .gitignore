@@ -4,6 +4,9 @@
 # =============== #
 
 Gen/
+Gen.meta
+StreamingAssets/
+StreamingAssets.meta
 
 # =============== #
 # Unity generated #
