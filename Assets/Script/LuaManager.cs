@@ -14,7 +14,7 @@ public class LuaManager : MonoBehaviour
     env = new LuaEnv();
     env.AddLoader(new LuaEnv.CustomLoader((ref string file) =>
     {
-      file = Application.streamingAssetsPath + "/Lua/Resources/" + file + ".lua";
+      file = Application.streamingAssetsPath + "/Lua/" + file + ".lua";
       string text = File.ReadAllText(file);
       if (text != null) return System.Text.Encoding.UTF8.GetBytes(text);
       return null;
@@ -22,12 +22,16 @@ public class LuaManager : MonoBehaviour
   }
   void Start()
   {
-
+    env.DoString("require 'main'");
   }
   void Update()
   {
     // print("C#"+(time++));
     env.Tick();
+  }
+
+  void OnDestroy () {
+    env.Dispose();
   }
 
   void OnGUI()
@@ -36,5 +40,9 @@ public class LuaManager : MonoBehaviour
     {
       env.DoString("require 'ShowTime'");
     }
+  }
+
+  void CheckUpdate () {
+    
   }
 }

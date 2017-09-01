@@ -2,3 +2,4 @@
 	print("陨落的星辰")
 end)
 
+return 1;
