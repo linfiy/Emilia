@@ -16,6 +16,13 @@ public class BundlePacker : Editor
     HandleLuaCode();
     BuildPipeline.BuildAssetBundles("Assets/StreamingAssets", BuildAssetBundleOptions.ChunkBasedCompression, BuildTarget.Android);
   }
+  [MenuItem("AssetsBundle/DeleteAssets")]
+  public static void DeleteBundle()
+  {
+    if (Directory.Exists(AppConst.STREAMING_PATH)) Directory.Delete(AppConst.STREAMING_PATH, true);
+    AssetDatabase.Refresh();
+  }
+
   [MenuItem("AssetsBundle/CreateBundleFile")]
   public static void CreateBundleFile()
   {

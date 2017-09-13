@@ -1,4 +1,10 @@
-xlua, unirx
+
+
+- [XLua](https://github.com/Tencent/xLua)
+- [RxLua](https://github.com/bjornbytes/RxLua)
+- [UniRx](https://github.com/neuecc/UniRx)
+- [json.lua](https://github.com/rxi/json.lua)
+
 #说明
 1.Lua代码在Assets/Lua/Resources/下编写    
 2.Lualoader的路径为Assets/StreamingAssets/Lua/Resources/    

@@ -1,7 +1,10 @@
-local Rx = require 'lib/rx'
+local request = require 'common/request'
 
-Rx.Observable.fromRange(1, 8)
-  :filter(function(x) return x % 2 == 0 end)
-  :concat(Rx.Observable.of('who do we appreciate'))
-  :map(function(value) return value .. '!' end)
-  :subscribe(print)
+-- test http request
+request.get({ act = 'get_conf' })
+:subscribe(function (data) 
+  print('success')
+  print(data.scrollText)
+end, function (error)
+  print(error.desc)
+end)
