@@ -9,16 +9,8 @@ namespace Util {
       
       ObservableWWW.Get(url)
       .Subscribe(
-        str => {
-          // format
-          // var table = new LuaTable();
-          success.Call(str);
-        },
-        e => {
-          // format
-          // var eTable = new LuaTable();
-          error.Call(e.Message);
-        }
+        str => success.Call(str),
+        e => error.Call(e.Message)
       );
     }
   }
