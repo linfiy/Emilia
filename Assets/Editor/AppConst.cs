@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AppConst : MonoBehaviour
+public class APPConst
 {
   public static int BUNDLE_VERSION = 1;
   public static string SHOW_VERSION = "3.0.1";
