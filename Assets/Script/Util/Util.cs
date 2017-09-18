@@ -1,6 +1,6 @@
 namespace Util {
   using UnityEngine;
-  public class Util {
+  public partial class Util {
 
     /// <summary>
     /// 取得数据存放目录
