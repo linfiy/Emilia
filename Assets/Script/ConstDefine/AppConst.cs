@@ -1,6 +1,7 @@
 using UnityEngine;
 
-public static class AppConst {
+public static class AppConst
+{
 
   // resource manager
   public const string ASSET_DIC = "1";
@@ -33,6 +34,7 @@ public static class AppConst {
 
   public static string BUNDLE_FILE_PATH = Application.streamingAssetsPath + "/bundle_index.txt";
 
-  
+  public static bool LUA_BUNDLE_MODE = false;
+
 
 }
