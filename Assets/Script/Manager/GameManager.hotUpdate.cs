@@ -9,21 +9,32 @@ namespace Emilia {
   using UniRx;
   public partial class GameManager {
 
-    void CheckHotResource () {
-      bool isExists = 
-      Directory.Exists(Util.DataPath) &&
-      Directory.Exists(Util.DataPath + "Lua/") && 
-      File.Exists(Util.DataPath + "bundle_index.txt");
+    IObservable<Unit> CheckHotResource () {
 
-      if (isExists || AppConst.DebugMode) {
-        OnUpdateResource()
-        .Subscribe(_ => {
-          Debug.Log("更新成功");
-        }).AddTo(this);
-        // return;
-      }
+      return Observable.Create<Unit>((observer) => {
+        bool isExists = 
+        Directory.Exists(Util.DataPath) &&
+        Directory.Exists(Util.DataPath + "Lua/") && 
+        File.Exists(Util.DataPath + "bundle_index.txt");
 
-      //启动释放协成 
+        IDisposable updateSub = null;
+        if (isExists || AppConst.DebugMode) {
+          updateSub = OnUpdateResource()
+          .Subscribe(_ => {
+            observer.OnNext(Unit.Default);
+          }, observer.OnError, observer.OnCompleted).AddTo(this);
+          // return;
+        }
+        else {
+          //启动释放协成 
+          observer.OnError(new Exception("启动释放协成 还没做"));
+          observer.OnCompleted();
+        }
+
+        return Disposable.Create(() => {
+          if (updateSub != null) updateSub.Dispose();
+        });
+      });
     }
 
     IObservable<Unit> OnUpdateResource () {
@@ -58,25 +69,21 @@ namespace Emilia {
             string f = keyValue[1];
             string localfileURI = (dataPath + f).Trim();
             string path = Path.GetDirectoryName(localfileURI);
-            // string fileRequestUrl = url + f + "?v=" + random;
 
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            
+
             var hasLocalFile = File.Exists(localfileURI);
             bool needUpdate = true;
 
             if (hasLocalFile) {
-              
               string remoteMd5 = keyValue[0].Trim();
               string localMd5 = Util.MD5(localfileURI);
-              print("localfileURI:" + localfileURI.Replace('\\', '/'));
-              // print("localMd5:" + localMd5);
               needUpdate = !remoteMd5.Equals(localMd5);
               if (needUpdate) File.Delete(localfileURI);
             }
 
             if (needUpdate) {   //本地缺少文件
-              needDownFiles.Add(localfileURI);
+              needDownFiles.Add(f);
             }
           }
 
@@ -89,12 +96,11 @@ namespace Emilia {
           // 下载资源文件
           else {
             Observable.Start(() => {
-              using (WebClient client = new WebClient()) {
-                for (int i = 0; i < needDownFiles.Count; i++) {
-                  var f = needDownFiles[i];
-                  string fileRequestUrl = url + f + "?v=" + random;
-                  Debug.Log("downloading>>" + f);
-                  client.DownloadFile(url, f);
+              for (int i = 0; i < needDownFiles.Count; i++) {
+                var f = needDownFiles[i];
+                using (var client = new WebClient()) {
+                  Debug.Log("DOADING:" + url + f + " To >>>> " + dataPath + f);
+                  client.DownloadFile(url + f, dataPath + f);
                 }
               }
               return;
@@ -113,16 +119,6 @@ namespace Emilia {
           indexSub.Dispose();
         });
       });
-      
     }
-
-    // void BeginDownload(string url, string file) {     //线程下载
-    //   object[] param = new object[2] { url, file };
-
-    //   ThreadEvent ev = new ThreadEvent();
-    //   ev.Key = NotiConst.UPDATE_DOWNLOAD;
-    //   ev.evParams.AddRange(param);
-    //   ThreadManager.AddEvent(ev, OnThreadCompleted);   //线程下载
-    // }
   }
 }

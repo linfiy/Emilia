@@ -3,6 +3,7 @@ namespace Emilia {
   using UnityEngine;
   using UnityEngine.UI;
   using System.Collections;
+  using UniRx;
   public partial class GameManager: MonoBehaviour {
 
     public ResourceManager resMgr;
@@ -30,7 +31,11 @@ namespace Emilia {
       
 
       // resMgr = gameObject.AddComponent<ResourceManager>();
-      CheckHotResource();
+      CheckHotResource()
+      .Subscribe(_ => {
+        // 检查更新成功
+        GameObject.Find("Lua").AddComponent<LuaManager>();
+      });
       // OnResourceInited();
 
     }

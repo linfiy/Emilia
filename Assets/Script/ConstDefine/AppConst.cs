@@ -7,7 +7,7 @@ public static class AppConst {
   public const string EXT_NAME = ".unity3d";
   public const int GameFrameRate = 30;
   public const string AssetDir = "StreamingAssets";           //素材目录 
-  public const string WEB_URL = "http://192.168.0.101:3000/hotupdate/";
+  public const string WEB_URL = "http://192.168.1.48:3000/hotupdate/";
 
 
   public const string AppName = "Emilia";
