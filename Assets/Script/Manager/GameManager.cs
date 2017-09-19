@@ -30,42 +30,45 @@ namespace Emilia {
 
       
 
-      // resMgr = gameObject.AddComponent<ResourceManager>();
+      
       CheckHotResource()
       .Subscribe(_ => {
         // 检查更新成功
         GameObject.Find("Lua").AddComponent<LuaManager>();
+        OnResourceInited();
       });
-      // OnResourceInited();
+      
 
     }
     
 
     void OnInitialize () {
 
-      // resMgr.LoadPrefab("pic_bundle", new string[]{ "saber" }, (UnityEngine.Object[] objs) => {
-      //   if (objs.Length > 0) {
+      resMgr.LoadPrefab("testsaber.unity3d", new string[]{ "SaberPanel" }, (UnityEngine.Object[] objs) => {
+        if (objs.Length > 0) {
 
-      //     print(objs[0]);
-
-      //     Image go = GameObject.Find("ImageSaber").GetComponent<Image>();
-
-      //     go.sprite = objs[0] as Sprite;
-      //   }
-      // });
+          print(objs[0]);
+          var saberImageObject = Instantiate(objs[0], GameObject.Find("Canvas").transform) as GameObject;
+          var saberRect = saberImageObject.GetComponent<RectTransform>();
+          saberRect.anchoredPosition = Vector2.zero;
+          saberImageObject.transform.localScale = Vector3.one;
+          saberRect.sizeDelta = new Vector2(1920, 1080);
+        }
+      });
 
     }
 
-    // void OnResourceInited() {
-    //   resMgr.Initialize(AppConst.AssetDir, () => {
+    void OnResourceInited() {
+      resMgr = gameObject.AddComponent<ResourceManager>();
+      resMgr.Initialize(AppConst.AssetDir, () => {
 
-    //       Debug.Log("Initialize OK!!!");
+          Debug.Log("Initialize OK!!!");
 
-    //       this.OnInitialize();
+          this.OnInitialize();
 
-    //   });
+      });
 
-    // }
+    }
 
 } 
 
