@@ -63,14 +63,16 @@ public class BundlePacker : Editor
     {
       HandleLuaCode();
     }
-    // 测试资源打包
-    // HandleExampleBundle();
-    // // 原来的代码(打包所有AssetBundle)
-    // // BuildPipeline.BuildAssetBundles(outputPath, type, target);
-    // BuildPipeline.BuildAssetBundles(outputPath, assetList.ToArray(), type, target);
-    // /* 生成索引文件 */
-    // CreateBundleIndexFile();
-    // AssetDatabase.Refresh();
+    // // 测试资源打包
+    HandleExampleBundle();
+    // 原来的代码(打包所有AssetBundle)
+    // BuildPipeline.BuildAssetBundles(outputPath, type, target);
+    //AssetBundleBuilder 文件路徑必須為Assets/ 开头的
+    BuildPipeline.BuildAssetBundles(outputPath, assetList.ToArray(), type, target);
+    /* 生成索引文件 */
+    CreateBundleIndexFile();
+    Directory.Delete(Application.dataPath + "/CopyLua/", true);
+    AssetDatabase.Refresh();
   }
   [MenuItem("AssetsBundle/DeleteAssets")]
   public static void DeleteBundle()
@@ -104,41 +106,64 @@ public class BundlePacker : Editor
   }
   static void HandleLuaBundle()
   {
-    string copyLuaPath = Application.streamingAssetsPath + "/Lua/";
+    string copyLuaPath = Application.dataPath + "/CopyLua/";
     if (!Directory.Exists(copyLuaPath)) Directory.CreateDirectory(copyLuaPath);
+    string luaPath = Application.streamingAssetsPath + "/Lua/";
+    if (!Directory.Exists(luaPath)) Directory.CreateDirectory(luaPath);
     string[] luaDirs = new string[] { Application.dataPath + "/Lua/" };//打包lua的目录
     foreach (string dir in luaDirs)
     {
       CopyLuaBytesFiles(dir, copyLuaPath);
     }
+    // 将复制的.bytes 文件打包成AssetBundle对象，准备打包
+    string[] path_lua_dirs = Directory.GetDirectories(copyLuaPath);
+    foreach (string dir in path_lua_dirs)
+    {
+      string name = dir.Replace(copyLuaPath, "");
+      name = name + AppConst.EXT_NAME;
+      AddBuildMap("Lua/" + name, "*.bytes", "Assets" + dir.Replace(Application.dataPath, string.Empty));
+    }
+    AddBuildMap("Lua/Lua" + AppConst.EXT_NAME, "*.bytes", "Assets" + copyLuaPath.Replace(Application.dataPath, string.Empty));
+    //非lua文件处理
+    foreach (string path in luaDirs)
+    {
+      dirsList.Clear(); filesList.Clear();
+      GetDirAllFile(path);
+      foreach (string file in filesList)
+      {
+        if (file.EndsWith(".meta") || file.EndsWith(".lua")) continue;
+        string name = file.Replace(path, string.Empty);
+        string copyPath = copyLuaPath + name;
+        string dir = Path.GetDirectoryName(copyPath);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        File.Copy(file, copyPath, true);
+      }
+    }
+    AssetDatabase.Refresh();
   }
   public static void CopyLuaBytesFiles(string sourceDir, string destDir, bool appendext = true, string searchPattern = "*.lua", SearchOption option = SearchOption.AllDirectories)
   {
-    if (!Directory.Exists(sourceDir))
-    {
-      return;
-    }
-
+    //判断文件夹是否存在
+    //获取文件目录下子文件
+    //拼接目标文件路径，以.bytes结尾
+    //复制文件
+    if (!Directory.Exists(sourceDir)) return;
     string[] files = Directory.GetFiles(sourceDir, searchPattern, option);
     int len = sourceDir.Length;
-
-    if (sourceDir[len - 1] == '/' || sourceDir[len - 1] == '\\')
+    if (sourceDir[len - 1].Equals('/') || sourceDir.EndsWith("\\"))
     {
-      --len;
+      len--;
+    }
+    foreach (string file in files)
+    {
+      string fileName = file.Remove(0, len);
+      string copyPath = destDir + "/" + fileName;
+      if (appendext) copyPath = copyPath + ".bytes";
+      string copyDir = Path.GetDirectoryName(copyPath);
+      Directory.CreateDirectory(copyDir);
+      File.Copy(file, copyPath, true);
     }
 
-    for (int i = 0; i < files.Length; i++)
-    {
-      string str = files[i].Remove(0, len);
-      // Debug.LogError(str);
-      string dest = destDir + "/" + str;
-      // Debug.LogWarning(dest);
-      if (appendext) dest += ".bytes";
-      string dir = Path.GetDirectoryName(dest);
-      // Debug.Log(dest);
-      Directory.CreateDirectory(dir);
-      File.Copy(files[i], dest, true);
-    }
   }
   static void HandleLuaCode()
   {
@@ -184,7 +209,7 @@ public class BundlePacker : Editor
     AddBuildMap("testSaber" + AppConst.EXT_NAME, "*.prefab", "Assets/HotRes/Saber");
     AddBuildMap("testSaber" + AppConst.EXT_NAME, "*.png", "Assets/HotRes/Saber");
   }
-
+  //将目录下的（目標）文件转化为AssetBundleBuilder对象
   static void AddBuildMap(string bundleName, string pattern, string path)
   {
     string[] files = Directory.GetFiles(path, pattern);
