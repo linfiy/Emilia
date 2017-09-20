@@ -100,7 +100,7 @@ namespace Emilia {
                 var f = needDownFiles[i];
                 using (var client = new WebClient()) {
                   Debug.Log("DOADING:" + url + f + " To >>>> " + dataPath + f);
-                  client.DownloadFile(url + f, dataPath + f);
+                  client.DownloadFile((url + f).Trim(), (dataPath + f).Trim());
                 }
               }
               return;

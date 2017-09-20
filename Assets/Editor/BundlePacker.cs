@@ -12,19 +12,12 @@ public class BundlePacker : Editor
   static List<string> dirsList = new List<string>();
   static List<string> filesList = new List<string>();
   static List<AssetBundleBuild> assetList = new List<AssetBundleBuild>();//存储打包资源的list
-  static string[] filterPostfix = new string[] { ".json", ".xml", ".txt", ".lua", ".assetbundle" };
-  static bool CanCopy(string file)
-  {
-    foreach (string postfix in filterPostfix)
-    {
-      if (file.EndsWith(postfix)) return true;
-    }
-    return false;
-  }
+
   static string dataPath
   {
     get { return Application.dataPath.ToLower(); }
   }
+
 
   /*android */
   [MenuItem("AssetsBundle/BuildAndroidAssets")]
@@ -71,7 +64,7 @@ public class BundlePacker : Editor
     BuildPipeline.BuildAssetBundles(outputPath, assetList.ToArray(), type, target);
     /* 生成索引文件 */
     CreateBundleIndexFile();
-    Directory.Delete(Application.dataPath + "/CopyLua/", true);
+    if(Directory.Exists(Application.dataPath + "/CopyLua/")) Directory.Delete(Application.dataPath + "/CopyLua/", true);
     AssetDatabase.Refresh();
   }
   [MenuItem("AssetsBundle/DeleteAssets")]
