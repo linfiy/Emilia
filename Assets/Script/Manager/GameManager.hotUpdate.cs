@@ -10,7 +10,7 @@ namespace Emilia {
   public partial class GameManager {
 
     IObservable<Unit> CheckHotResource () {
-
+      
       return Observable.Create<Unit>((observer) => {
         bool isExists = 
         Directory.Exists(Util.DataPath) &&
@@ -19,16 +19,16 @@ namespace Emilia {
 
         IDisposable updateSub = null;
         if (isExists || AppConst.DebugMode) {
+          print(OnUpdateResource());
           updateSub = OnUpdateResource()
           .Subscribe(_ => {
             observer.OnNext(Unit.Default);
-          }, observer.OnError, observer.OnCompleted).AddTo(this);
+          }, observer.OnError).AddTo(this);
           // return;
         }
         else {
           //启动释放协成 
           observer.OnError(new Exception("启动释放协成 还没做"));
-          observer.OnCompleted();
         }
 
         return Disposable.Create(() => {
@@ -41,9 +41,8 @@ namespace Emilia {
 
       return Observable.Create<Unit>((observer) => {
         if (!AppConst.updateMode) {
-          // OnResourceInited();
-          observer.OnError(new Exception("没有开启更新模式"));
-          observer.OnCompleted();
+          Debug.Log("没有开启更新模式，AppConst.updateMode = false");
+          observer.OnNext(Unit.Default);
           return Disposable.Empty;
         }
 
@@ -53,7 +52,7 @@ namespace Emilia {
         var random = DateTime.Now.ToString("yyyymmddhhmmss");
         var listUrl = url + "bundle_index.txt?v=" + random;
         Debug.LogWarning("LoadUpdate---->>>" + listUrl);
-        // 下载索引文件
+        // 下载索引文件进行比对
         var indexSub = ObservableWWW.GetWWW(listUrl).Subscribe(res => {
           if (!Directory.Exists(dataPath)) Directory.CreateDirectory(dataPath);
           File.WriteAllBytes(dataPath + "bundle_index.txt", res.bytes);
@@ -82,22 +81,21 @@ namespace Emilia {
               if (needUpdate) File.Delete(localfileURI);
             }
 
-            if (needUpdate) {   //本地缺少文件
-              needDownFiles.Add(f);
-            }
+            //本地缺少文件
+            if (needUpdate) needDownFiles.Add(f);
           }
 
           // 没有需要下载的文件
           if (needDownFiles.Count == 0) {
-            Debug.Log("不需要更新");
+            Debug.Log("比对远程文件完成，不需要更新");
             observer.OnNext(Unit.Default);
-            observer.OnCompleted();
           }
           // 下载资源文件
           else {
             Observable.Start(() => {
               for (int i = 0; i < needDownFiles.Count; i++) {
                 var f = needDownFiles[i];
+                // 之后要改成异步的，获取下载进度
                 using (var client = new WebClient()) {
                   Debug.Log("DOADING:" + url + f + " To >>>> " + dataPath + f);
                   client.DownloadFile((url + f).Trim(), (dataPath + f).Trim());
@@ -109,15 +107,16 @@ namespace Emilia {
             .Subscribe(_ => {
               if (Application.isEditor) UnityEditor.AssetDatabase.Refresh();
               observer.OnNext(Unit.Default);
-            }, observer.OnError, observer.OnCompleted)
+            }, observer.OnError)
             .AddTo(this);
           }
+        }, 
+        e => observer.OnError(
+          new ApplicationException("获取更新信息失败, 请检查网络参数" + listUrl)
+        )
+        ).AddTo(this);
 
-        }, observer.OnError).AddTo(this);
-
-        return Disposable.Create(() => {
-          indexSub.Dispose();
-        });
+        return Disposable.Create(() => indexSub.Dispose());
       });
     }
   }

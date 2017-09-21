@@ -6,7 +6,7 @@ namespace Emilia {
   using UniRx;
   public partial class GameManager: MonoBehaviour {
 
-    public ResourceManager resMgr;
+    public static ResourceManager resMgr;
 
 
 
@@ -32,11 +32,13 @@ namespace Emilia {
 
       
       CheckHotResource()
-      .Subscribe(_ => {
-        // 检查更新成功
-        GameObject.Find("Lua").AddComponent<LuaManager>();
-        OnResourceInited();
-      });
+      .Subscribe(
+        _ => {
+          GameObject.Find("Lua").AddComponent<LuaManager>();
+          OnResourceInited();
+        },
+        e => Debug.Log(e.Message)
+      ).AddTo(this);
       
 
     }

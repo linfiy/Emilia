@@ -16,7 +16,9 @@ public static class AppConst
 
 
   public const bool DebugMode = true;
-  public const bool updateMode = true;
+
+  // 开启之后需要自行配置 WEB_URL 及其地址包含的文件
+  public const bool updateMode = false;   
 
 
 

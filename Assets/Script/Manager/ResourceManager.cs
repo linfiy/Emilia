@@ -54,10 +54,17 @@ namespace Emilia {
       );
     }
 
+    public void LoadPrefab(string abName, string assetName, Action<UObject[]> func) {
+      LoadPrefab(abName, new string[]{ assetName }, func);
+    }
     public void LoadPrefab (string abName, string[] assetNames, Action<UObject[]> func) {
       LoadAsset<GameObject>(abName, assetNames, func);
     }
 
+    public void LoadPrefab(string abName, string assetName, LuaFunction func) {
+      LoadPrefab(abName, new string[]{ assetName }, func);
+    }
+    
     public void LoadPrefab (string abName, string[] assetNames, LuaFunction func) {
       LoadAsset<GameObject>(abName, assetNames, null, func);
     }
