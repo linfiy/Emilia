@@ -17,7 +17,6 @@ namespace Emilia {
       instance = this;
 
 
-
       DontDestroyOnLoad(gameObject);  //防止销毁自己
 
 
@@ -34,8 +33,8 @@ namespace Emilia {
       CheckHotResource()
       .Subscribe(
         _ => {
-          GameObject.Find("Lua").AddComponent<LuaManager>();
-          OnResourceInited();
+          // GameObject.Find("Lua").AddComponent<LuaManager>();
+          // OnResourceInited();
         },
         e => Debug.Log(e.Message)
       ).AddTo(this);
