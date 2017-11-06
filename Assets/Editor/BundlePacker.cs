@@ -217,5 +217,41 @@ public class BundlePacker : Editor
     build.assetNames = files;
     assetList.Add(build);
   }
+  [MenuItem("AssetsBundle/UpLoadAssets")]
+  static void UpLoad()
+  {
+    CopyDirectory(AppConst.STREAMING_PATH, @"D:/Tocar/_TOOL/light-server/hotupdate/");
+  }
+
+  static void CopyDirectory(string sourceDirName, string destDirName)
+  {
+    int total = 0;
+    try
+    {
+      if (destDirName[destDirName.Length - 1] != Path.DirectorySeparatorChar)
+        destDirName = destDirName + Path.DirectorySeparatorChar;
+
+      string[] files = Directory.GetFiles(sourceDirName);
+      foreach (string file in files)
+      {
+        if (File.Exists(destDirName + Path.GetFileName(file)))
+          continue;
+        File.Copy(file, destDirName + Path.GetFileName(file), true);
+        File.SetAttributes(destDirName + Path.GetFileName(file), FileAttributes.Normal);
+        total++;
+      }
+
+      string[] dirs = Directory.GetDirectories(sourceDirName);
+      foreach (string dir in dirs)
+      {
+        CopyDirectory(dir, destDirName + Path.GetFileName(dir));
+      }
+      Debug.Log("加载的文件数量:"+total);
+    }
+    catch (Exception ex)
+    {
+      Debug.Log(ex.ToString());
+    }
+  }
 
 }

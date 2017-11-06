@@ -11,7 +11,8 @@ public class LuaInspector : Editor
 
   void OnEnable()
   {
-    string path = Application.dataPath + "/" + AssetDatabase.GetAssetPath(Selection.activeObject).Substring(7);
+    if (Selection.activeGameObject == null) return;
+    string path = AppConst.DATA_PATH + AssetDatabase.GetAssetPath(Selection.activeObject).Substring(7);
     try
     {
       TextReader tr = new StreamReader(path);

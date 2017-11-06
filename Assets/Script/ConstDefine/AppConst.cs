@@ -8,7 +8,7 @@ public static class AppConst
   public const string EXT_NAME = ".unity3d";
   public const int GameFrameRate = 30;
   public const string AssetDir = "StreamingAssets";           //素材目录 
-  public const string WEB_URL = "http://192.168.1.48:3000/hotupdate/";
+  public const string WEB_URL = "http://192.168.1.11:3000/hotupdate/";
 
 
   public const string AppName = "Emilia";
@@ -18,7 +18,7 @@ public static class AppConst
   public const bool DebugMode = true;
 
   // 开启之后需要自行配置 WEB_URL 及其地址包含的文件
-  public const bool updateMode = false;   
+  public const bool updateMode = true;   
 
 
 
