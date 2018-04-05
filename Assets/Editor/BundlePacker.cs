@@ -6,19 +6,17 @@ using System.Collections;
 using System.Collections.Generic;
 using LitJson;
 using ToolUtil = Util.Util;
+using System.Text;
 
 public class BundlePacker : Editor
 {
   static List<string> dirsList = new List<string>();
   static List<string> filesList = new List<string>();
   static List<AssetBundleBuild> assetList = new List<AssetBundleBuild>();//存储打包资源的list
-
   static string dataPath
   {
     get { return Application.dataPath.ToLower(); }
   }
-
-
   /*android */
   [MenuItem("AssetsBundle/BuildAndroidAssets")]
   public static void BuildAndroidAssets()
@@ -41,7 +39,6 @@ public class BundlePacker : Editor
   public static void BuildBundle(BuildTarget target)
   {
     Caching.CleanCache();
-
     string outputPath = "Assets/" + AppConst.AssetDir;
     var type = BuildAssetBundleOptions.None;
     string streamingPath = Application.streamingAssetsPath;
@@ -64,7 +61,7 @@ public class BundlePacker : Editor
     BuildPipeline.BuildAssetBundles(outputPath, assetList.ToArray(), type, target);
     /* 生成索引文件 */
     CreateBundleIndexFile();
-    if(Directory.Exists(Application.dataPath + "/CopyLua/")) Directory.Delete(Application.dataPath + "/CopyLua/", true);
+    if (Directory.Exists(Application.dataPath + "/CopyLua/")) Directory.Delete(Application.dataPath + "/CopyLua/", true);
     AssetDatabase.Refresh();
   }
   [MenuItem("AssetsBundle/DeleteAssets")]
@@ -74,22 +71,18 @@ public class BundlePacker : Editor
     Caching.CleanCache();
     AssetDatabase.Refresh();
   }
-
   // [MenuItem("AssetsBundle/CreateBundleFile")]
   public static void CreateBundleIndexFile()
   {
     dirsList.Clear(); filesList.Clear();
     GetDirAllFile(AppConst.STREAMING_PATH);
-
     var fs = new FileStream(AppConst.BUNDLE_FILE_PATH, FileMode.CreateNew);
     var sw = new StreamWriter(fs);
-
     for (int i = 0; i < filesList.Count; i++)
     {
       string file = filesList[i];
       string ext = Path.GetExtension(file);
       if (file.EndsWith(".meta") || file.Contains(".DS_Store")) continue;
-
       string md5 = ToolUtil.MD5(file);
       string key = file.Replace(AppConst.STREAMING_PATH, string.Empty);
       sw.WriteLine(md5 + "|" + key);
@@ -156,7 +149,6 @@ public class BundlePacker : Editor
       Directory.CreateDirectory(copyDir);
       File.Copy(file, copyPath, true);
     }
-
   }
   static void HandleLuaCode()
   {
@@ -190,7 +182,6 @@ public class BundlePacker : Editor
       GetDirAllFile(dir);
     }
   }
-
   /// <summary>
   /// 处理框架实例包
   /// </summary>
@@ -198,7 +189,6 @@ public class BundlePacker : Editor
   {
     string resPath = dataPath + "/" + AppConst.AssetDir + "/";
     if (!Directory.Exists(resPath)) Directory.CreateDirectory(resPath);
-
     AddBuildMap("testSaber" + AppConst.EXT_NAME, "*.prefab", "Assets/HotRes/Saber");
     AddBuildMap("testSaber" + AppConst.EXT_NAME, "*.png", "Assets/HotRes/Saber");
   }
@@ -207,7 +197,6 @@ public class BundlePacker : Editor
   {
     string[] files = Directory.GetFiles(path, pattern);
     if (files.Length == 0) return;
-
     for (int i = 0; i < files.Length; i++)
     {
       files[i] = files[i].Replace('\\', '/');
@@ -220,38 +209,61 @@ public class BundlePacker : Editor
   [MenuItem("AssetsBundle/UpLoadAssets")]
   static void UpLoad()
   {
-    CopyDirectory(AppConst.STREAMING_PATH, @"D:/Tocar/_TOOL/light-server/hotupdate/");
+    CopyFolder(AppConst.STREAMING_PATH, @"D:/Tocar/_TOOL/light-server/hotupdate/");
   }
-
-  static void CopyDirectory(string sourceDirName, string destDirName)
+  static void CopyFolder(string srcPath, string tarPath)
   {
-    int total = 0;
-    try
+    if (!Directory.Exists(srcPath))
     {
-      if (destDirName[destDirName.Length - 1] != Path.DirectorySeparatorChar)
-        destDirName = destDirName + Path.DirectorySeparatorChar;
-
-      string[] files = Directory.GetFiles(sourceDirName);
-      foreach (string file in files)
-      {
-        if (File.Exists(destDirName + Path.GetFileName(file)))
-          continue;
-        File.Copy(file, destDirName + Path.GetFileName(file), true);
-        File.SetAttributes(destDirName + Path.GetFileName(file), FileAttributes.Normal);
-        total++;
-      }
-
-      string[] dirs = Directory.GetDirectories(sourceDirName);
-      foreach (string dir in dirs)
-      {
-        CopyDirectory(dir, destDirName + Path.GetFileName(dir));
-      }
-      Debug.Log("加载的文件数量:"+total);
+      Directory.CreateDirectory(srcPath);
     }
-    catch (Exception ex)
+    if (!Directory.Exists(tarPath))
     {
-      Debug.Log(ex.ToString());
+      Directory.CreateDirectory(tarPath);
+    }
+    CopyFile(srcPath, tarPath);
+    string[] directionName = Directory.GetDirectories(srcPath);
+    foreach (string dirPath in directionName)
+    {
+      string directionPathTemp = tarPath + "\\" + dirPath.Substring(srcPath.Length);
+      CopyFolder(dirPath, directionPathTemp);
+    }
+  }
+  static void CopyFile(string srcPath, string tarPath)
+  {
+    string[] filesList = Directory.GetFiles(srcPath);
+    foreach (string f in filesList)
+    {
+      string fTarPath = tarPath + "\\" + f.Substring(srcPath.Length);
+      if (File.Exists(fTarPath))
+      {
+        File.Copy(f, fTarPath, true);
+      }
+      else
+      {
+        File.Copy(f, fTarPath);
+      }
     }
   }
 
+  /// <summary>
+  /// 编码LUA文件用UTF-8
+  /// </summary>
+  [MenuItem("Lua/Encode LuaFile with UTF-8", false, 50)]
+  public static void EncodeLuaFile()
+  {
+    string path = Application.dataPath + "/Lua";
+    string[] files = Directory.GetFiles(path, "*.lua", SearchOption.AllDirectories);
+    foreach (string f in files)
+    {
+      string file = f.Replace('\\', '/');
+
+      string content = File.ReadAllText(file);
+      using (var sw = new StreamWriter(file, false, new UTF8Encoding(false)))
+      {
+        sw.Write(content);
+      }
+      Debug.Log("Encode file::>>" + file + " OK!");
+    }
+  }
 }

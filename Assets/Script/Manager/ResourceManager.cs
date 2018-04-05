@@ -194,6 +194,7 @@ namespace Emilia {
       }
     }
 
+    //这个方法好像有问题??????
     AssetBundleDetail GetLoadedAssetBundle (string abName) {
       AssetBundleDetail detail = null;
       loadedAssetBundles.TryGetValue(abName, out detail);
